@@ -49,7 +49,7 @@ function [e1,e2,dR] = calculate_dR_space(structure,spectrum,reference,force_e2_a
     density = 50;
     quadrants = 5;
     depth_threshold = 7;
-    fit_resolution = 100;    
+    fit_resolution = 1000;    
     expansion = 1.2;
 
     % calculate global search area by epslion min and max
@@ -206,7 +206,7 @@ function [e1,e2,dR] = calculate_dR_space(structure,spectrum,reference,force_e2_a
         F = scatteredInterpolant(X,Y,Delta,'linear');
         zq = zeros(size(e1));
         zq(:) = F(e1(:),e2(:));
-        dR(:,:,idx) = zq;
+        dR(:,:,idx) = abs(zq);
         
 %         if flag_plot
 %             figure(1); 
@@ -250,6 +250,7 @@ function [artificial_reference] = calculate_artificial_reference(...
     [~,lres_idx] = min(spectrum.rdata);
     
     normdR = normalize(-log10(delta_R(:,:,lres_idx))); % also - taking the logarithm to enhance differences
+    
 % %     normdR = normdR - min(min(normdR));
 % %     normdR  = normdR./max(max(normdR));
     normdR(normdR<circle_threshold) = 0;
