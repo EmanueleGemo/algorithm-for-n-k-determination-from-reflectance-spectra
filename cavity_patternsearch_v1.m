@@ -70,15 +70,36 @@ function h = plot_weights(h,p,reference)
     else
         figure(h.Number);
     end
-    delete(get(gca,'Children'));
+%     delete(get(gca,'Children'));
+    delete(gca);
+    
+        % constants
+%     GREY = ([128,128,128])/255;
+    LGREY = ([160 160 160])/255;
+    BLACK = [0 0 0];
+    RED = [255 8 8]/255;
+    MAGENTA = [255,165,255]/255;
+%     AZUL = [0 255 255]/255;
+    BLUE = [70 70 255]/255;
+%     WHITE = [1 1 1];
+%     DGREEN = [50 126 41]/255;
+%     LGREEN = [77 193 64]/255;
+%     DORANGE = [222 118 3]/255 *.5;    
+    LW = 2;
+    
     
     w = mean([p,1-sum(p,2)],1);
     
     % plot diagram
+    pn = gobjects(2);
     theta = pi/2+(0:2*pi/reference.N:2*pi);
-    polarplot(theta,ones(1,length(w)+1),'k:');
+    pn(1) = polarplot(theta,ones(1,length(w)+1),'k:');
     hold on;
-    polarplot(theta,[w,w(1)],'b','Linewidth',1);
+    pn(2) = polarplot(theta,[w,w(1)],'b','Linewidth',LW);
+    
+    a = gca;
+    set(a,'fontweight','bold','fontname','Arial','fontsize',12,...
+        'box','on','linewidth',1.5, 'RColor',LGREY);
       
     hold off;
     nticks = ceil(max(abs(w))*2)/2;
@@ -105,7 +126,7 @@ function h = plot_sols(h,solution,reference,comparison,structure,spectrum)
     else
         figure(h.Number);
     end
-    delete(get(gca,'Children'));
+%     delete(get(gca,'Children'));
     delete(gca);
     
     % constants
@@ -123,6 +144,15 @@ function h = plot_sols(h,solution,reference,comparison,structure,spectrum)
     Smooth_Constant = 40;
     LW = 3;
     dim_color = 1/2;
+    LS = {'-','--',':','-.'};
+    MS = {'o','+','*','.','x','s','d','^','v','>','<','p','h'};
+    CS = cell(numel(LS),numel(MS));
+    for ii = 1:numel(LS)
+        for jj = 1:numel(MS)
+            CS{ii,jj} = [LS{ii},MS{jj}];
+        end
+    end
+    S = [LS,CS(:)',MS];
 
 
     a = axes('position',[.0613 .1833 .248 .6867]);
@@ -140,7 +170,9 @@ function h = plot_sols(h,solution,reference,comparison,structure,spectrum)
     pn = gobjects(ng);
     hold(a,'on');
     for ii = 1:reference.N
-        pn(ii) = plot(a,range,smooth(reference.ndata(:,ii),Smooth_Constant,'loess'),'linewidth',LW,'color',BLUE.*p(ii));
+        pn(ii) = plot(a,range,smooth(reference.ndata(:,ii),Smooth_Constant,'loess'),...
+            S{ii},'MarkerIndices',1:ceil(numel(range)/(20+randi(3))):numel(range),...
+            'linewidth',LW*2/3,'color',BLUE.*p(ii));
     end
     lg = reference.material;
     pn(ii+1) = plot(a,range,smooth(solution.n,Smooth_Constant,'loess'),'-','linewidth',LW,'color',RED);
@@ -151,35 +183,55 @@ function h = plot_sols(h,solution,reference,comparison,structure,spectrum)
         lg(ii) = {'Comparison'};
     end
     lg = rm_(lg);
+    % style format
     legend(a,lg,'Location','Best','fontweight','bold','fontname','Arial','fontsize',8','color',BLACK,'box','off')
-    ylabel('n')
-    xlabel('wavelength [m]');
     set(a,'fontweight','bold','fontname','Arial','fontsize',12,...
+        'xlim',[range(1), range(end)],...
         'box','on','linewidth',1.5, 'XColor',LGREY,'YColor',LGREY);
+    for ii = 1:numel(a.XTickLabel)
+        a.XTickLabel{ii} = ['\color{black}' a.XTickLabel{ii}];
+    end
+    for ii = 1:numel(a.YTickLabel)
+        a.YTickLabel{ii} = ['\color{black}' a.YTickLabel{ii}];
+    end
+    ylabel(a,'n','fontweight','bold','fontname','Arial','fontsize',12,'Color',BLACK)
+    xlabel(a,'wavelength [m]','fontweight','bold','fontname','Arial','fontsize',12,'Color',BLACK)
     
     % extinction coefficient
     pn = gobjects(ng);
     hold(b,'on');
     for ii = 1:reference.N
-        pn(ii) = plot(b,range,smooth(reference.kdata(:,ii),Smooth_Constant,'loess'),'linewidth',LW,'color',BLUE.*p(ii));
+        pn(ii) = plot(b,range,smooth(reference.kdata(:,ii),Smooth_Constant,'loess'),...
+            S{ii},'MarkerIndices',1:ceil(numel(range)/(20+randi(3))):numel(range),...
+            'linewidth',LW*2/3,'color',BLUE.*p(ii));
     end
     pn(ii+1) = plot(b,range,smooth(solution.k,Smooth_Constant,'loess'),'-','linewidth',LW,'color',RED);
     if ~isempty(comparison.material) && ~isempty(comparison.material{1})
         ii = ii+2;
         pn(ii) = plot(b,range,smooth(comparison.kdata,Smooth_Constant,'loess'),'--','LineWidth',LW,'color',MAGENTA);
     end
+    % style format
     legend(b,lg,'Location','Best','fontweight','bold','fontname','Arial','fontsize',8','color',BLACK,'box','off')
-    ylabel('k')
-    xlabel('wavelength [m]');
     set(b,'fontweight','bold','fontname','Arial','fontsize',12,...
+        'xlim',[range(1), range(end)],...
         'box','on','linewidth',1.5, 'XColor',LGREY,'YColor',LGREY);
+    for ii = 1:numel(b.XTickLabel)
+        b.XTickLabel{ii} = ['\color{black}' b.XTickLabel{ii}];
+    end
+    for ii = 1:numel(b.YTickLabel)
+        b.YTickLabel{ii} = ['\color{black}' b.YTickLabel{ii}];
+    end
+    ylabel(b,'k','fontweight','bold','fontname','Arial','fontsize',12,'Color',BLACK)
+    xlabel(b,'wavelength [m]','fontweight','bold','fontname','Arial','fontsize',12,'Color',BLACK)
     
     % reflection
     pn = gobjects(ng);
     hold(c,'on');    
     for ii = 1:reference.N
         cavity = create_cavity(structure,reference.edata(:,ii),(1:numel(range))');
-        pn(ii) = plot(c,range,TMM_fun_reduced(range,cavity.L,cavity.ER),'linewidth',LW,'color',BLUE.*p(ii));
+        pn(ii) = plot(c,range,TMM_fun_reduced(range,cavity.L,cavity.ER),...
+            S{ii},'MarkerIndices',1:ceil(numel(range)/(20+randi(3))):numel(range),...
+            'linewidth',LW*2/3,'color',BLUE.*p(ii));
     end
     cavity = mod_cavity(cavity,solution.e);
     pn(ii+1) = plot(c,range,TMM_fun_reduced(range,cavity.L,cavity.ER),'-','linewidth',LW,'color',RED);
@@ -190,13 +242,20 @@ function h = plot_sols(h,solution,reference,comparison,structure,spectrum)
     end
     pn(ii+1) = plot(c,range,spectrum.rdata,'-','LineWidth',LW,'color',BLACK);
     lg(ii+1) = {'Measured'};
-    
-    legend(c,lg,'Location','Best','fontweight','bold','fontname','Arial','fontsize',8','color',BLACK,'box','off')
-    ylabel('k')
-    xlabel('wavelength [m]');
+    % style format
+    legend(c,lg,'Location','Best','fontweight','bold','fontname','Arial','fontsize',8','color',BLACK,'box','off') 
     set(c,'fontweight','bold','fontname','Arial','fontsize',12,...
+        'xlim',[range(1), range(end)],...
         'ylim',[0,1],'YTick',[0:.2:1],...
         'box','on','linewidth',1.5, 'XColor',LGREY,'YColor',LGREY);
+    for ii = 1:numel(c.XTickLabel)
+        c.XTickLabel{ii} = ['\color{black}' c.XTickLabel{ii}];
+    end
+    for ii = 1:numel(c.YTickLabel)
+        c.YTickLabel{ii} = ['\color{black}' c.YTickLabel{ii}];
+    end
+    ylabel(c,'reflectance','fontweight','bold','fontname','Arial','fontsize',12,'Color',BLACK)
+    xlabel(c,'wavelength [m]','fontweight','bold','fontname','Arial','fontsize',12,'Color',BLACK)
 
     drawnow
 end
